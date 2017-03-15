@@ -72,9 +72,11 @@ Route::group(['middleware' => ['guest']], function () {
     });
 
     Route::group(['prefix' => 'file'], function () {
-        Route::get('list', 'FileController@fileList');
-        Route::post('upload', 'FileController@upload');
-        Route::get('download', 'FileController@download');
+        Route::any('list', 'FileController@fileList');
+        Route::any('upload', 'FileController@upload');
+        Route::any('download', 'FileController@download');
+
+        Route::any('adminGetFileList', 'FileController@adminGetFileList');
     });
 
     Route::group(['prefix' => 'student'], function () {
@@ -89,6 +91,13 @@ Route::group(['middleware' => ['guest']], function () {
         Route::any('getStudentBaseInfo', 'StudentController@getStudentBaseInfo');
 
         Route::any('getStudentListWithoutSelectedProject', 'StudentController@getStudentListWithoutSelectedProject');
+
+        Route::group(['prefix' => 'admin'], function () {
+           Route::any('adminGetStudentListWithParams', 'StudentController@adminGetStudentListWithParams');
+           Route::any('adminCreateStudent', 'StudentController@adminCreateStudent');
+           Route::any('adminUpdateStudent', 'StudentController@adminUpdateStudent');
+           Route::any('adminImportStudentFromFile', 'StudentController@adminImportStudentFromFile');
+        });
     });
 
     Route::group(['prefix' => 'studentScore'], function () {
@@ -101,11 +110,24 @@ Route::group(['middleware' => ['guest']], function () {
         Route::get('initStudentOrder', 'TeacherController@initStudentOrder');
         Route::post('multiImport', 'TeacherController@multiImport');
         Route::post('simpleList', 'TeacherController@simpleList');
+
+        Route::group(['prefix' => 'admin'], function () {
+            Route::any('adminGetTeacherListWithParams', 'TeacherController@adminGetTeacherListWithParams');
+            Route::any('adminCreateTeacher', 'TeacherController@adminCreateTeacher');
+            Route::any('adminUpdateTeacher', 'TeacherController@adminUpdateTeacher');
+            Route::any('adminImportTeacherFromFile', 'TeacherController@adminImportTeacherFromFile');
+        });
     });
 
     Route::group(['prefix' => 'code'], function () {
         Route::get('professionalTitleList', 'CodeController@professionalTitleList');
         Route::get('interest', 'CodeController@interest');
+
+        Route::any('sex', 'CodeController@sex');
+        Route::any('school', 'CodeController@school');
+        Route::any('specialty', 'CodeController@specialty');
+        Route::any('classInfo', 'CodeController@classInfo');
+        Route::any('professionalTitle', 'CodeController@professionalTitleList');
     });
 
     Route::group(['prefix' => 'task'], function () {

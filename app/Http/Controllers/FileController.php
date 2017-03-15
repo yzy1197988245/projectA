@@ -30,6 +30,7 @@ class FileController extends Controller
             return response()->json($result);
         }
         else {
+            $data = [];
             foreach ($files as $file) {
                 $path = $file->store('');
                 $fileData = File::where('hashName', $file->hashName())->first();
@@ -42,13 +43,17 @@ class FileController extends Controller
                 $fileData['mimeType'] = $file->getClientMimeType();
                 $fileData['fileName'] = $file->getClientOriginalName();
                 $fileData->save();
+                $data[] = $fileData->id;
             }
-            return '文件接收成功';
+            $result->data = $data;
+            $result->message = '文件接收成功';
+            return response()->json($result);
         }
     }
 
     public function download(Request $request) {
-        $id = $request->get('id');
+        $result = new MyResult();
+        $id = $request->get('fileId');
         if ($id != null) {
             $fileData = File::find($id);
 
@@ -63,8 +68,12 @@ class FileController extends Controller
                     ]);
             }
             else
-                return 'file not found';
+                return $result->error('文件没有找到');
         }
-        return 'file not found';
+        return $result->error('文件没有找到');
+    }
+
+    public function adminGetFileList() {
+        return response()->json(File::select('id', 'fileName')->paginate(10));
     }
 }

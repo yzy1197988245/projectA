@@ -94,4 +94,30 @@ class TeacherController extends Controller
     public function simpleList(Request $request) {
         return response()->json(Teacher::select('id', 'name', 'professional_title_id')->paginate(10));
     }
+
+    public function adminGetTeacherListWithParams(Request $request) {
+        $teacherNumber = $request->get('teacherNumber');
+        $name = $request->get('name');
+        $schoolId = $request->get('schoolId');
+        $specialtyId = $request->get('specialtyId');
+        $professionalTitleId = $request->get('professionalTitleId');
+
+        $teachers = Teacher::select('teacher_number', 'name', 'sex_id', 'school_id', 'specialty_id', 'professional_title_id');
+
+        if ($schoolId != 0)
+            $teachers = $teachers->where('school_id', $schoolId);
+
+        if ($specialtyId != 0)
+            $teachers = $teachers->where('specialty_id', $specialtyId);
+
+        if ($professionalTitleId != 0)
+            $teachers = $teachers->where('professional_title_id', $professionalTitleId);
+
+        $teachers = $teachers->where('teacher_number', 'like', '%'.$teacherNumber.'%');
+        $teachers = $teachers->where('name', 'like', '%'.$name.'%');
+
+        $teachers = $teachers->orderBy('school_id', 'asc');
+
+        return response()->json($teachers->paginate(10));
+    }
 }
