@@ -120,4 +120,34 @@ class TeacherController extends Controller
 
         return response()->json($teachers->paginate(10));
     }
+
+    public function adminCreateTeacher(Request $request) {
+        $this->validate($request, [
+            'teacherNumber' =>  'required|unique:teacher,teacher_number',
+            'name' => 'required',
+            'sexId' => 'required',
+            'schoolId' => 'required',
+            'specialtyId' => 'required',
+            'professionalTitleId' => 'required',
+            'available' => 'required'
+        ]);
+
+        $teacher = new Teacher();
+        $teacher['teacher_number'] = $request->get('teacherNumber');
+        $teacher['name'] = $request->get('name');
+        $teacher['sex_id'] = $request->get('sexId');
+        $teacher['school_id'] = $request->get('schoolId');
+        $teacher['specialty_id'] = $request->get('specialtyId');
+        $teacher['professional_title_id'] = $request->get('professionalTitleId');
+        $teacher['phone'] = $request->get('phone');
+        $teacher['email'] = $request->get('email');
+        $teacher['remarks'] = $request->get('remarks');
+        $teacher['availability'] = $request->get('available');
+
+        $teacher->save();
+
+        $result = new MyResult();
+
+        return response()->json($result);
+    }
 }

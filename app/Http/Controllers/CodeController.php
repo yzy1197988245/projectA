@@ -12,6 +12,7 @@ namespace App\Http\Controllers;
 use App\Data\ClassInfo;
 use App\Data\Interest;
 use App\Data\ProfessionalTitle;
+use App\Data\Role;
 use App\Data\School;
 use App\Data\Sex;
 use App\Data\Specialty;
@@ -19,7 +20,7 @@ use App\Data\Specialty;
 class CodeController extends Controller
 {
 
-    public function professionalTitleList() {
+    public function professionalTitle() {
         return response()->json(ProfessionalTitle::all());
     }
 
@@ -33,24 +34,19 @@ class CodeController extends Controller
 
     public function school() {
         $schools = School::orderBy('id', 'asc')->get();
-//        foreach ($schools as $school) {
-//            $school['specialties'] = Specialty::where('school_id', $school->id)->get();
-//            foreach ($school['specialties'] as $specialty) {
-//                $specialty['classes'] = ClassInfo::where('specialty_id', $specialty->id)->get();
-//            }
-//        }
         return response()->json($schools);
     }
 
     public function specialty() {
         $specialties = Specialty::orderBy('school_id', 'asc')->get();
-//        foreach ($specialties as $specialty) {
-//            $specialty['classes'] = ClassInfo::where('specialty_id', $specialty->id)->get();
-//        }
         return response()->json($specialties);
     }
 
     public function classInfo() {
         return response()->json(ClassInfo::all());
+    }
+
+    public function role() {
+        return response()->json(Role::all());
     }
 }

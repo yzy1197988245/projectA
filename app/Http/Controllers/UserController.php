@@ -66,4 +66,53 @@ class UserController extends Controller
 
         return response()->json(new MyResult());
     }
+
+    public function adminGetUserListWithParams(Request $request) {
+        $userNumber = $request->get('userNumber');
+        $name = $request->get('name');
+        $roleId = $request->get('roleId');
+        $schoolId = $request->get('schoolId');
+        $specialtyId = $request->get('specialtyId');
+
+        $users = User::select('user_number', 'name', 'role_id', 'school_id', 'specialty_id');
+
+        if (!is_null($roleId) && $roleId != 0)
+            $users = $users->where('role_id', $roleId);
+
+        if (!is_null($schoolId) && $schoolId != 0)
+            $users = $users->where('school_id', $schoolId);
+
+        if (!is_null($specialtyId) && $specialtyId != 0)
+            $users = $users->where('specialty_id', $specialtyId);
+
+        $users = $users->where('user_number', 'like', '%'.$userNumber.'%');
+        $users = $users->where('name', 'like', '%'.$name.'%');
+
+        return response()->json($users->paginate(10));
+    }
+
+    public function adminCreateUser(Request $request) {
+        $this->validate($request, [
+            'userNumber' =>  'required|unique:user,user_number',
+            'name' => 'required',
+            'schoolId' => 'required',
+            'specialtyId' => 'required',
+            'roleId' => 'required'
+        ]);
+
+        $user = new User();
+
+        $user['user_number'] = $request->get('userNumber');
+        $user['name'] = $request->get('name');
+        $user['role_id'] = $request->get('roleId');
+        $user['school_id'] = $request->get('schoolId');
+        $user['specialty_id'] = $request->get('specialtyId');
+        $user['password'] = $request->get('password');
+
+        $user->save();
+
+        $result = new MyResult();
+
+        return response()->json($result);
+    }
 }

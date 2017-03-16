@@ -69,6 +69,11 @@ Route::group(['middleware' => ['guest']], function () {
         Route::get('list', 'UserController@userList');
         Route::post('create', 'UserController@create');
         Route::post('delete', 'UserController@delete');
+
+        Route::group(['prefix' => 'admin'], function () {
+            Route::any('adminGetUserListWithParams', 'UserController@adminGetUserListWithParams');
+            Route::any('adminCreateUser', 'UserController@adminCreateUser');
+        });
     });
 
     Route::group(['prefix' => 'file'], function () {
@@ -120,14 +125,15 @@ Route::group(['middleware' => ['guest']], function () {
     });
 
     Route::group(['prefix' => 'code'], function () {
-        Route::get('professionalTitleList', 'CodeController@professionalTitleList');
+        Route::get('professionalTitleList', 'CodeController@professionalTitle');
         Route::get('interest', 'CodeController@interest');
 
         Route::any('sex', 'CodeController@sex');
         Route::any('school', 'CodeController@school');
         Route::any('specialty', 'CodeController@specialty');
         Route::any('classInfo', 'CodeController@classInfo');
-        Route::any('professionalTitle', 'CodeController@professionalTitleList');
+        Route::any('professionalTitle', 'CodeController@professionalTitle');
+        Route::any('role', 'CodeController@role');
     });
 
     Route::group(['prefix' => 'task'], function () {

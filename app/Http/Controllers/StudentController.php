@@ -215,6 +215,10 @@ class StudentController extends Controller
         return response()->json($result);
     }
 
+    /**
+     * Admin
+     */
+
     public function adminGetStudentListWithParams(Request $request) {
         $studentNumber = $request->get('studentNumber');
         $name = $request->get('name');
