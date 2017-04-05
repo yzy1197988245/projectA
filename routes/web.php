@@ -10,6 +10,7 @@
 | to using a Closure or controller method. Build something great!
 |
 */
+
 Route::get('/', function () {
     return view('Welcome');
 });
@@ -51,6 +52,10 @@ Route::group(['middleware' => ['guest']], function () {
 
         Route::any('projectAutomaticDistribution', 'ProjectController@projectAutomaticDistribution');
         Route::any('getAdminProjectList', 'ProjectController@getAdminProjectList');
+        Route::any('getProjectListForJM', 'ProjectController@getProjectListForJM');
+        Route::any('getZNProjectList', 'ProjectController@getZNProjectList');
+        Route::any('getProjectListWithStudents', 'ProjectController@getProjectListWithStudents');
+        Route::any('teacherRefuseAcceptStudent', 'ProjectController@teacherRefuseAcceptStudent');
     });
 
     Route::group(['prefix' => 'role'], function () {
@@ -69,6 +74,8 @@ Route::group(['middleware' => ['guest']], function () {
         Route::get('list', 'UserController@userList');
         Route::post('create', 'UserController@create');
         Route::post('delete', 'UserController@delete');
+
+        Route::any('userModifyPassword', 'UserController@userModifyPassword');
 
         Route::group(['prefix' => 'admin'], function () {
             Route::any('adminGetUserListWithParams', 'UserController@adminGetUserListWithParams');
@@ -94,14 +101,15 @@ Route::group(['middleware' => ['guest']], function () {
         Route::post('detail', 'StudentController@detail');
         Route::post('updateOrder', 'StudentController@updateStudentOrder');
         Route::any('getStudentBaseInfo', 'StudentController@getStudentBaseInfo');
-
         Route::any('getStudentListWithoutSelectedProject', 'StudentController@getStudentListWithoutSelectedProject');
+        Route::any('getStudentDescriptionForTeacher', 'StudentController@getStudentDescriptionForTeacher');
+        Route::any('teacherGetStudentData', 'StudentController@teacherGetStudentData');
 
         Route::group(['prefix' => 'admin'], function () {
-           Route::any('adminGetStudentListWithParams', 'StudentController@adminGetStudentListWithParams');
-           Route::any('adminCreateStudent', 'StudentController@adminCreateStudent');
-           Route::any('adminUpdateStudent', 'StudentController@adminUpdateStudent');
-           Route::any('adminImportStudentFromFile', 'StudentController@adminImportStudentFromFile');
+            Route::any('adminGetStudentListWithParams', 'StudentController@adminGetStudentListWithParams');
+            Route::any('adminCreateStudent', 'StudentController@adminCreateStudent');
+            Route::any('adminUpdateStudent', 'StudentController@adminUpdateStudent');
+            Route::any('adminImportStudentFromFile', 'StudentController@adminImportStudentFromFile');
         });
     });
 
@@ -137,7 +145,12 @@ Route::group(['middleware' => ['guest']], function () {
     });
 
     Route::group(['prefix' => 'task'], function () {
-       Route::any('getTaskList', 'TaskController@getTaskList');
+        Route::any('getTaskList', 'TaskController@getTaskList');
+    });
+
+    Route::group(['prefix' => 'interest'], function () {
+        Route::any('getInterestListWithParams', 'InterestController@getInterestListWithParams');
+        Route::any('getInterestDataForChart', 'InterestController@getInterestDataForChart');
     });
 });
 

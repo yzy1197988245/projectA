@@ -10,6 +10,10 @@ namespace App\Http\Controllers;
 
 
 use App\Data\File;
+use App\Data\ProfessionalTitle;
+use App\Data\School;
+use App\Data\Sex;
+use App\Data\Specialty;
 use App\Data\Student;
 use App\Data\Teacher;
 use App\Data\TeacherStudentOrder;
@@ -102,7 +106,7 @@ class TeacherController extends Controller
         $specialtyId = $request->get('specialtyId');
         $professionalTitleId = $request->get('professionalTitleId');
 
-        $teachers = Teacher::select('teacher_number', 'name', 'sex_id', 'school_id', 'specialty_id', 'professional_title_id');
+        $teachers = Teacher::select('id', 'teacher_number', 'name', 'sex_id', 'school_id', 'specialty_id', 'professional_title_id');
 
         if ($schoolId != 0)
             $teachers = $teachers->where('school_id', $schoolId);
@@ -115,8 +119,6 @@ class TeacherController extends Controller
 
         $teachers = $teachers->where('teacher_number', 'like', '%'.$teacherNumber.'%');
         $teachers = $teachers->where('name', 'like', '%'.$name.'%');
-
-        $teachers = $teachers->orderBy('school_id', 'asc');
 
         return response()->json($teachers->paginate(10));
     }
@@ -149,5 +151,89 @@ class TeacherController extends Controller
         $result = new MyResult();
 
         return response()->json($result);
+    }
+
+    public function adminImportTeacherFromFile(Request $request) {
+        $result = new MyResult();
+
+        $fileId = $request->get('fileId');
+        $fileData = File::find($fileId);
+
+        if ($fileData == null)
+            return $result->error('未找到文件');
+
+        $extension = $fileData['extension'];
+        if ($extension != 'xls' && $extension != 'xlsx')
+            return $result->error('文件格式不正确');
+
+        $path = storage_path('app/'.$fileData['path']);
+
+        $sheets = Excel::load($path)->all();
+        $sheet = $sheets[0];
+        $insertCount = 0;
+        $updateCount = 0;
+
+        foreach ($sheet as $row) {
+
+            $teacherNumber = $row['teacher_number'];
+            $name = $row['name'];
+            $sex = $row['sex'];
+            $school = $row['school'];
+            $specialty = $row['specialty'];
+            $professionalTitle = $row['professional_title'];
+
+            $sexData = Sex::where('name', $sex)->first();
+            if (is_null($sexData)) {
+                $sexData = new Sex();
+                $sexData['name'] = $sex;
+                $sexData->save();
+            }
+            $sexId = $sexData->id;
+
+            $schoolData = School::where('name', $school)->first();
+            if (is_null($schoolData)) {
+                $schoolData = new School();
+                $schoolData['name'] = $school;
+                $schoolData->save();
+            }
+            $schoolId = $schoolData->id;
+
+            $specialtyData = Specialty::where('name', $specialty)->first();
+            if (is_null($specialtyData)) {
+                $specialtyData = new Specialty();
+                $specialtyData['name'] = $specialty;
+                $specialtyData['school_id'] = $schoolId;
+                $specialtyData->save();
+            }
+            $specialtyId = $specialtyData->id;
+
+            $professionalTitleData = ProfessionalTitle::where('name', $professionalTitle)->first();
+            if (is_null($professionalTitleData)) {
+                $professionalTitleData = new ProfessionalTitle();
+                $professionalTitleData['name'] = $professionalTitle;
+                $professionalTitleData->save();
+            }
+            $professionalTitleId = $professionalTitleData->id;
+
+            $teacher = Teacher::where('teacher_number', $teacherNumber)->first();
+
+            if ($teacher == null) {
+                $teacher = new Teacher();
+                $insertCount++;
+            } else {
+                $updateCount++;
+            }
+
+            $teacher['name'] = $name;
+            $teacher['sex_id'] = $sexId;
+            $teacher['teacher_number'] = $teacherNumber;
+            $teacher['specialty_id'] = $specialtyId;
+            $teacher['school_id'] = $schoolId;
+            $teacher['professional_title_id'] = $professionalTitleId;
+
+            $teacher->save();
+        }
+
+        return $result->success('共插入'.$insertCount.'条数据;'.'共更新'.$updateCount.'条数据');
     }
 }

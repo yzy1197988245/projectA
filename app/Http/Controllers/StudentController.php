@@ -80,57 +80,77 @@ class StudentController extends Controller
 
     public function updateDescription(Request $request) {
         $result = new MyResult();
-        $userId = $request->get('userId');
 
-        if ($userId != null) {
-            $student = Student::find($userId);
-            if ($student != null) {
+        $student = $request['user'];
 
-                $student['description'] = $request->get('description');
-                $student['interest_teacher_id'] = $request->get('interestTeacher');
+        $student['description'] = $request->get('description');
 
-                $interests = $request->get('interests');
+        $interestTeacher = Teacher::find($request->get('interestTeacher'));
 
-                StudentInterest::where('student_id', $student->id)->delete();
-
-                foreach ($interests as $interest) {
-                    $studentInterest = new StudentInterest();
-                    $studentInterest['student_id'] = $student->id;
-                    $studentInterest['interest_id'] = $interest;
-                    $studentInterest->save();
-                }
-
-                $student->save();
-            } else {
-                $result->code = 100;
-                $result->message = '未找到该学生';
-            }
+        if (!is_null($interestTeacher)) {
+            $student['interest_teacher_id'] = $interestTeacher->id;
+            $student['interest_school_id'] = $interestTeacher['school_id'];
+            $student['interest_specialty_id'] = $interestTeacher['specialty_id'];
         } else {
-            $result->code = 100;
-            $result->message = '缺少学生id';
+            $student['interest_teacher_id'] = null;
+            $student['interest_school_id'] = null;
+            $student['interest_specialty_id'] = null;
         }
+
+        $interests = $request->get('interests');
+        StudentInterest::where('student_id', $student->id)->delete();
+        foreach ($interests as $interest) {
+            $studentInterest = new StudentInterest();
+            $studentInterest['student_id'] = $student->id;
+            $studentInterest['interest_id'] = $interest;
+            $studentInterest->save();
+        }
+
+        $student->save();
 
         return response()->json($result);
     }
 
     public function studentListWithOrder(Request $request) {
-        $teacherId = $request->get('teacherId');
+        $teacherId = $request['user']->id;
+        $result = new MyResult();
         if ($teacherId != null) {
             $students = [];
             $studentIds = TeacherStudentOrder::select('student_id')->where('teacher_id', $teacherId)->orderBy('order', 'asc')->get();
             for ($i = 0; $i < count($studentIds); $i++) {
-                $student = Student::select('id', 'name', 'interest_teacher_id')->where('id', $studentIds[$i]->student_id)->first();
+                $student = Student::select('id', 'name', 'school_id', 'specialty_id')->where('id', $studentIds[$i]->student_id)->first();
                 $student['interested'] = $student->interest_teacher_id == $teacherId;
-                $student['order'] = $i+1;
+                $student['order'] = $i + 1;
                 $students[] = $student;
             }
-            return response()->json($students);
+            $result->data = $students;
+            return response()->json($result);
         }
-        return response()->json([]);
+        $result->code = 100;
+        $result->message = '缺少参数';
+        return response()->json($result);
     }
 
-    public function simpleList() {
-        return response()->json(Student::select('id', 'student_number', 'name')->paginate(10));
+    public function simpleList(Request $request) {
+        $name = $request->get('name');
+        $studentNumber = $request->get('studentNumber');
+        $schoolId = $request->get('schoolId');
+        $specialtyId = $request->get('specialtyId');
+
+        $students = Student::select('id', 'student_number', 'school_id', 'specialty_id', 'name');
+
+        if (!is_null($schoolId) && $schoolId != 0) {
+            $students = $students->where('school_id', $schoolId);
+        }
+
+        if (!is_null($specialtyId) && $specialtyId != 0) {
+            $students = $students->where('specialty_id', $specialtyId);
+        }
+
+        $students = $students->where('name', 'like', '%'.$name.'%');
+        $students = $students->where('student_number', 'like', '%'.$studentNumber.'%');
+
+        return response()->json($students->paginate(10));
     }
 
     public function detail(Request $request) {
@@ -215,10 +235,35 @@ class StudentController extends Controller
         return response()->json($result);
     }
 
+    public function getStudentDescriptionForTeacher(Request $request) {
+        $user = $request['user'];
+        $students = Student::select('name', 'description')->whereNotNull('description');
+        if (!is_null($user['school_id']) && $user['school_id'] != 0) {
+            $students = $students->where('school_id', $user['school_id']);
+        }
+        if (!is_null($user['specialty_id']) && $user['specialty_id'] !=0 ) {
+            $students = $students->where('specialty_id', $user['specialty_id']);
+        }
+        return response()->json($students->paginate(10));
+    }
+
+    public function teacherGetStudentData(Request $request) {
+        $studentId = $request->get('studentId');
+        $student = Student::select('id', 'name', 'student_number', 'school_id', 'specialty_id', 'description')->where('id', $studentId)->first();
+        $studentInterests = StudentInterest::where('student_id', $studentId);
+        $interests = [];
+        foreach ($studentInterests as $studentInterest) {
+            $interests[] = Interest::find($studentInterest['interest_id'])->name;
+        }
+        $student['interests'] = $interests;
+        $result = new MyResult();
+        $result->data = $student;
+        return response()->json($result);
+    }
+
     /**
      * Admin
      */
-
     public function adminGetStudentListWithParams(Request $request) {
         $studentNumber = $request->get('studentNumber');
         $name = $request->get('name');

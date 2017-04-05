@@ -22,7 +22,7 @@ class MyResult
     }
 
     public function success($message) {
-        $this->code = 100;
+        $this->code = 200;
         $this->message = $message;
         return response()->json($this);
     }

@@ -115,4 +115,18 @@ class UserController extends Controller
 
         return response()->json($result);
     }
+
+    public function userModifyPassword(Request $request) {
+        $old = $request->get('old');
+        $new = $request->get('new');
+        $user = $request['user'];
+        $result = new MyResult();
+        if ($old != $user['password']) {
+            return $result->error('旧密码输入错误');
+        } else {
+            $user['password'] = $new;
+            $user->save();
+            return $result->success('修改成功');
+        }
+    }
 }
